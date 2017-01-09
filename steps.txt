@@ -1,0 +1,23 @@
+#####  DIND - docker in docker
+## Steps to run DIND in 4 containers - one master and three workers
+## MASTER
+docker run --privileged -it --rm -h master docker:dind sh
+dockerd --host=unix:///var/run/docker.sock  --host=tcp://0.0.0.0:2375  --storage-driver=vfs &
+docker swarm init
+docker run -d -p 80:8080 -v/var/run/docker.sock:/var/run/docker.sock manomarks/visualizer
+#SWARM URL http://172.17.0.2:8080/
+
+## WORKER1
+docker run --privileged -it --rm --name worker1 -h worker1 docker:dind sh
+dockerd --host=unix:///var/run/docker.sock  --host=tcp://0.0.0.0:2375  --storage-driver=vfs &
+
+## WORKER2
+docker run --privileged -it --rm --name worker2 -h worker2 docker:dind sh
+dockerd --host=unix:///var/run/docker.sock  --host=tcp://0.0.0.0:2375  --storage-driver=vfs &
+
+## WORKER3
+docker run --privileged -it --rm --name worker3 -h worker3 docker:dind sh
+dockerd --host=unix:///var/run/docker.sock  --host=tcp://0.0.0.0:2375  --storage-driver=vfs &
+
+# START A SERVICE
+ docker service  create --name busybox --constraint "node.role != manager" busybox ping  172.17.0.1 
